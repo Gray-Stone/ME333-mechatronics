@@ -1,0 +1,4 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "class-lib")(type "KiCad")(uri "/home/leogray/Active-file/NW-classes/ME-333-mechatronics/class-lib.kicad_sym")(options "")(descr ""))
+)
