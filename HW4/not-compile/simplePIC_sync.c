@@ -4,7 +4,7 @@ void delay(void);
 
 int main(void) {
   TRISBCLR = 0x30; // Make TRIS for B4 and B5 0, 
-  LATBbits.LATB4 = 0;    // Turn GREEN on and YELLOW off.  These pins sink current
+  LATBbits.LATB4 = 1;    // Turn GREEN on and YELLOW off.  These pins sink current
   LATBbits.LATB5 = 1;    // on the NU32DIP, so "high" (1) = "off" and "low" (0) = "on"
 
   while(1) {
