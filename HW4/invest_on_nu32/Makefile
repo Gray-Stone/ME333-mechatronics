@@ -123,6 +123,5 @@ putty :
 .PHONY: screen
 screen :
 	"$(TERMEMU)" "$(PORT)" 230400
-
 picocom :
-	picocom "$(PORT)" 230400 --echo
+	picocom "$(PORT)" -b 230400 --echo

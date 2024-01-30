@@ -12,13 +12,13 @@ Write a library for the ultrasonic range finder (HC-SR04) using the template sr0
 Refer to the Memory Organization section of the Data Sheet and Figure 2.1.
 
 ### a. 
-Referring to the Data Sheet, indicate which bits, 0-31, can be used as input/outputs for
-each of Ports B through G. For the PIC32MX795F512H in Figure 2.1, indicate which
-pin corresponds to bit 0 of port E (this is referred to as RE0).
+Referring to the Data Sheet, indicate which bits, 0-31, can be used as input/outputs for each of Ports B through G. For the PIC32MX795F512H in Figure 2.1, indicate which pin corresponds to bit 0 of port E (this is referred to as RE0).
 
 For ports A and B:
 
 Memory at 0xBF88 6000 are reserved for ports A to C.
+
+For `PIC32MX170F256B` port B0 is at pin 4.
 
 ### b.
 The SFR INTCON refers to “interrupt control.” Which bits, 0-31, of this SFR are
@@ -86,20 +86,29 @@ Since the convention is to have definition in header file, declaration in source
 
 `NU32.h` contains the declaration for
 ```
+
+#define NU32_LED1 LATFbits.LATF0    // LED1 on the NU32 board
+#define NU32_LED2 LATFbits.LATF1    // LED2 on the NU32 board
+#define NU32_USER PORTDbits.RD7     // USER button on the NU32 board
+#define NU32_SYS_FREQ 80000000ul    // 80 million Hz
+
 void NU32_Startup(void);
 void NU32_ReadUART3(char * string, int maxLength);
 void NU32_WriteUART3(const char * string);
 ```
 
-So these functions are provided to others. 
+So these functions: `NU32_Startup` `NU32_ReadUART3` `NU32_WriteUART3` are provided to others
 
-And other contents. 
+
+These macro values are defined in header for others to use: `NU32_LED1` `NU32_LED2` `NU32_USER` `NU32_SYS_FREQ`
 
 ```
 #define NU32_DESIRED_BAUD 230400
 ```
 
-are private to the file only.
+are private to the source file only.
+
+And there are no global or const variable.
 
 
 ## 2 
@@ -109,26 +118,67 @@ You will create your own libraries.
 
 ### a. 
 Remove the comments from invest.c in Appendix A. Now modify it to work on the
-NU32 using the NU32 library. You will need to replace all instances of printf and
-scanf with appropriate combinations of sprintf, sscanf, NU32_ReadUART3 and
-NU32_WriteUART3. Verify that you can provide data to the PIC32 with your keyboard
-and display the results on your computer screen. Turn in your code for all the files,
-with comments where you altered the input and output statements.
+NU32 using the NU32 library. You will need to replace all instances of printf and scanf with appropriate combinations of sprintf, sscanf, NU32_ReadUART3 and
+NU32_WriteUART3. Verify that you can provide data to the PIC32 with your keyboard and display the results on your computer screen. Turn in your code for all the files, with comments where you altered the input and output statements.
 
-
+see `invest.c`
 
 
 ### b.
-Split invest.c into two C files, main.c and helper.c, and one header file, helper.h.
-helper.c contains all functions other than main. Which constants, function prototypes,
-data type definitions, etc., should go in each file? Build your project and verify that it
-works. For the safety of future helper library users, put an include guard in helper.h.
-Turn in your code and a separate paragraph justifying your choice for where to put the
-various definitions.
+Split invest.c into two C files, main.c and helper.c, and one header file, helper.h. helper.c contains all functions other than main. Which constants, function prototypes, data type definitions, etc., should go in each file? Build your project and verify that it works. For the safety of future helper library users, put an include guard in helper.h. Turn in your code and a separate paragraph justifying your choice for where to put the various definitions.
+
+see `helper.c` amd `helper.h` for detail
+
+The header needs to declear all the public facing function, aka function prototypes, which is:
+```
+int getUserInput(Investment *invp);     
+void calculateGrowth(Investment *invp); 
+void sendOutput(double *arr, int years);
+```
+
+In addition, the public data structure and macro constant also needs to be in header so others can access it. 
+
+```
+#define MAX_YEARS 100
+typedef struct {
+  double inv0;                    
+  double growth;                  
+  int years;                      
+  double invarray[MAX_YEARS + 1]; 
+} Investment;                     
+```
+
+everything else should stay in source.
+
 ## c.
-Break invest.c into three files: main.c, io.c, and calculate.c. Any function which
-handles input or output should be in io.c. Think about which prototypes, data types,
-etc., are needed for each C file and come up with a good choice of a set of header files
-and how to include them. Again, for safety, use include guards in your header files.
-Verify that your code works. Turn in your code and a separate paragraph justifying
-your choice of header files.
+Break invest.c into three files: main.c, io.c, and calculate.c. Any function which handles input or output should be in io.c. Think about which prototypes, data types, etc., are needed for each C file and come up with a good choice of a set of header files and how to include them. Again, for safety, use include guards in your header files. Verify that your code works. Turn in your code and a separate paragraph justifying your choice of header files.
+
+The headers are split in three. 
+
+As a common convention, the `io.c` and `claculate.c` each get a header `io.h` and `calculate.h`. This two header will host their function declaration (prototypes).
+
+io.h have 
+```
+int getUserInput(Investment *invp);
+void sendOutput(double *arr, int years);
+```
+
+claculate.h have 
+```
+void calculateGrowth(Investment *invp);
+```
+
+Since both file depends on the `Investment` datatype. This is moved to its own header `invest_type.h`, which have 
+
+```
+#define MAX_YEARS 100 // constant indicating max number of years to track
+
+typedef struct {
+  double inv0;                    // initial investment
+  double growth;                  // growth rate, where 1.0 = zero growth
+  int years;                      // number of years to track
+  double invarray[MAX_YEARS + 1]; // investment array   ==SecA.4.9==
+} Investment;                     // the new data type is called Investment
+```
+
+This way, each compilation unit only includes the minimal needed content from the headers. 
