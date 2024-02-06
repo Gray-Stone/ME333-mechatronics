@@ -12,6 +12,7 @@ void __ISR(_EXTERNAL_0_VECTOR, IPL2SOFT) Ext0ISR(void) { // step 1: the ISR
   // within 10ms of last recorded case.
   // We still update this. So the switch much to have a true 10ms 
   // quiet period 
+    IFS0bits.INT0IF = 0;            // clear interrupt flag IFS0<3>
     last_isr_time = _CP0_GET_COUNT();
     return ;
   }
