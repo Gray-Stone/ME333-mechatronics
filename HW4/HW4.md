@@ -1,4 +1,7 @@
- 
+# Homework 4 
+
+Qingyuan Chen 
+
 Chapter 3, problems 3 (for part a, ports A and B, and what pin is B0), 4,5,7,9 (for TRISB instead of TIRSD).
 
 Chapter 4, problems 1, 2
@@ -14,9 +17,13 @@ Refer to the Memory Organization section of the Data Sheet and Figure 2.1.
 ### a. 
 Referring to the Data Sheet, indicate which bits, 0-31, can be used as input/outputs for each of Ports B through G. For the PIC32MX795F512H in Figure 2.1, indicate which pin corresponds to bit 0 of port E (this is referred to as RE0).
 
+The input and output of each port is with `PORTx` registers.
+
 For ports A and B:
 
-Memory at 0xBF88 6000 are reserved for ports A to C.
+`PORTA` register bits <10:7> , <4:0> are for PORTA10:PORTA4
+
+`PORTB` register bits <15:0> are used for PORTB15:PORT0
 
 For `PIC32MX170F256B` port B0 is at pin 4.
 
