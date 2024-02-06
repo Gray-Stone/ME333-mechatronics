@@ -3,7 +3,7 @@
 #define MAX_MESSAGE_LENGTH 100
 
 
-void Int2Setup(){
+void IntSetup(){
 
   // INT2 – External Interrupt 2 13 11 IFS0<13> IEC0<13> IPC2<28:26> IPC2<25:24>
 
@@ -14,8 +14,6 @@ void Int2Setup(){
 
   // INT2R = 0b0010;
 
-  
-
   __builtin_disable_interrupts(); // step 2: disable interrupts
   // INTCONbits.INT2EP = 0;          // step 3: INT2 triggers on falling edge
   // IPC2bits.INT2IP = 6;            // step 4: interrupt priority 6
@@ -24,7 +22,8 @@ void Int2Setup(){
   // IEC0bits.INT2IE = 1;            // step 6: enable
 
 
-    INTCONbits.INT0EP = 0;          // step 3: INT0 triggers on falling edge
+  // Using INT0 instead, Somehow INT2 always crash the chip.
+  INTCONbits.INT0EP = 0;          // step 3: INT0 triggers on falling edge
   IPC0bits.INT0IP = 2;            // step 4: interrupt priority 2
   IPC0bits.INT0IS = 1;            // step 4: interrupt priority 1
   IFS0bits.INT0IF = 0;            // step 5: clear the int flag
@@ -76,8 +75,6 @@ void __ISR(_EXTERNAL_0_VECTOR, IPL2SOFT) Ext0ISR(void) {
     NU32DIP_GREEN = 1;
     state = 1 ; 
   }
-
-
   // if state == 1 stop watch finished, but we want the print to finish to screen, 
   // so actually ignore user pushes intentionally.
 
@@ -87,9 +84,9 @@ void __ISR(_EXTERNAL_0_VECTOR, IPL2SOFT) Ext0ISR(void) {
 
 
 int main (){
-    
+
     NU32DIP_Startup();
-    Int2Setup();
+    IntSetup();
 
     char message[MAX_MESSAGE_LENGTH];
     sprintf(message , "Press the USER button to start the timer\n\r");

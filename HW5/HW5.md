@@ -390,3 +390,4 @@ The ISR should either
 (2) read the current timer count, depending on whether the program is in the “waiting to begin timing” state or the “timing state.” 
 
 Use priority level 6 and the shadow register set. Verify that the timing is accurate. The stopwatch only has to be accurate for periods of less than the core timer’s rollover time. You could also try using polling in your main function to write out the current elapsed time (when the program is in the “timing state”) to the user’s screen every second so the user can see the running time.
+
