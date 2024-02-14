@@ -141,7 +141,7 @@ __muldf3
 __divdf3
 ```
 | name     | location           | size               | note                                      |
-| -------- | ------------------ | ------------------ | ----------------------------------------- |
+| -------- | ------------------ | ------------------ | ---------------- |
 | __divdi3 | 0x000000009d007948 | 0x444 , 1092 bytes |
 | __addsf3 | 0x000000009d0087d0 | 0x277 , 631 bytes  | // __addsf3 is 8 byte later then __subsf3 |
 | __subsf3 | 0x000000009d0087c8 | 0x278 , 632 bytes  |
@@ -391,3 +391,5 @@ The ISR should either
 
 Use priority level 6 and the shadow register set. Verify that the timing is accurate. The stopwatch only has to be accurate for periods of less than the core timer’s rollover time. You could also try using polling in your main function to write out the current elapsed time (when the program is in the “timing state”) to the user’s screen every second so the user can see the running time.
 
+
+See `stopwatch.c` for actual code. The pic we use having problem setting priority 6 on INT2. Thus using priority 2 instead. 
