@@ -13,7 +13,7 @@ other, with approximately one inch separation, as shown in Figure 24.4. Now choo
 be as small as possible while ensuring that the voltage Vout at the phototransistor emitter is
 close to 3 V when the LED anode is connected to 3.3 V (maximum LED brightness) and
 close to 0 V when the LED anode is disconnected (the LED is off). (Something in the
-10 kωrange may work, but use a smaller resistance if you can still get the same voltage
+10 kohm range may work, but use a smaller resistance if you can still get the same voltage
 swing.) Record your value of R. Now connect the anode of the LED to OC1 for the rest of
 the project.
 
@@ -52,8 +52,8 @@ Channel2: Waveform at sensor. (blue)
 see `p24.2_pwm.c` for code.
 
 ### c.
-Now remove the 1 μF capacitor and get another screenshot of Vout. Explain the difference from the previous waveform.
-Insert the 1 μF capacitor back into the circuit for the rest of the project.
+Now remove the 1 uF capacitor and get another screenshot of Vout. Explain the difference from the previous waveform.
+Insert the 1 uF capacitor back into the circuit for the rest of the project.
 
 The waveform without cap have a lot more amplitude from peak to peak. With cap, the sensor signal is filtered. Which result in almost flat reading. Without the cap, the voltage change is more obvious.
 ![Alt text](sensor-v-without-cap.png)

@@ -29,7 +29,7 @@ void Timer2Setup(){
   T2CONbits.TCS = 0; // PCBLK input (the default)
 
   // T2 – Timer2 9  8  IFS0<9>  IEC0<9>  IPC2<4:2>  IPC2<1:0>
-  IPC2bits.T2IP = 2; // priority 5
+  IPC2bits.T2IP = 5; // priority 5
   IPC2bits.T2IS = 0;
   IFS0bits.T2IF = 0; // clear interrupt flag
   IEC0bits.T2IE = 1; // enable timer interrupt.
