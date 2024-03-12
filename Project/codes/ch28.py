@@ -1,3 +1,5 @@
+#! /usr/bin/python3
+
 # chapter 28 in python
 
 # sudo apt-get install python3-pip
@@ -8,6 +10,14 @@ import serial
 ser = serial.Serial('/dev/ttyUSB0',230400)
 print('Opening port: ')
 print(ser.name)
+
+state_map ={
+0:"IDLE", 
+1:"PWM", 
+2:"ITEST", 
+3:"HOLD", 
+4:"TRACK", 
+}
 
 has_quit = False
 # menu loop
@@ -24,17 +34,29 @@ while not has_quit:
     
     # take the appropriate action
     # there is no switch() in python, using if elif instead
-    if (selection == 'd'):
-        # example operation
-        n_str = input('Enter number: ') # get the number to send
-        n_int = int(n_str) # turn it into an int
-        print('number = ' + str(n_int)) # print it to the screen to double check
 
-        ser.write((str(n_int)+'\n').encode()); # send the number
+    if (selection == 'c'):
         n_str = ser.read_until(b'\n');  # get the incremented number back
-        n_int = int(n_str) # turn it into an int
-        print('Got back: ' + str(n_int) + '\n') # print it to the screen
+        count = int(n_str) # turn it into an int
+        print(f"The motor is at {count} count")
+    elif (selection == 'b'):
+        n_str = ser.read_until(b'\n');
+        count = float(n_str) # turn it into an int
+        print(f"Current {count} mA")
+    elif (selection == 'd'):
+        n_str = ser.read_until(b'\n');  # get the incremented number back
+        count = float(n_str) # turn it into an int
+        print(f"The motor is at {count} degree")
+    elif (selection=="r"):
+        # Get mode 
+        curr_state = int(ser.read_until(b'\n'));  # get the incremented number back
+        print(f"current state: {state_map.get(curr_state,'Invalid_state')} ")
+
+    elif (selection == 'e'):
+        n_str = ser.read_until(b'\n');  # get the incremented number back
+        print(n_str)
     elif (selection == 'q'):
+        
         print('Exiting client')
         has_quit = True; # exit client
         # be sure to close the port

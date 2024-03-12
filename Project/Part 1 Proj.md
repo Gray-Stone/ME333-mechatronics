@@ -1,7 +1,7 @@
 28.4.1 #7, 28.4.7 #7, 28.4.9 #8
 
 
-# 28.4.1
+## 28.4.1
 
 ### 1. 
 The NU32 communicates with the encoder counter by an SPI channel. Which SPI channel
@@ -70,5 +70,8 @@ Circuits are break into two main sections.
 ![Zoom in on PIC and PICO](Pic Picos Schematic.png)
 
 
+## 28.4.9
 
 ![Zoom in on Motor section: ](Motor Section Secematic.png)
+
+
