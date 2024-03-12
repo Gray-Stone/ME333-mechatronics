@@ -58,14 +58,14 @@ int main() {
 
     NU32DIP_ReadUART1(message, sizeof(message));
      NU32DIP_GREEN = 0;
-      NU32DIP_YELLOW = 0;
+      NU32DIP_YELLOW = 1;
 
     char input = message[0];
     switch (input) {
       // A is not an option for NU32DIP
     case 'b': {
       // Read current sensor mA
-      double current = INA219_read_current();
+      float current = INA219_read_current();
       PrintUART1("%f\r\n", current);
       break;
     }
@@ -96,6 +96,39 @@ int main() {
       set_state(s_PWM);
       break;
     }
+    case 'g': {
+      // Set current gain
+      NU32DIP_ReadUART1(message_in, sizeof(message_in));
+      sscanf(message_in, "%f %f", &current_pgain_g, &current_igain_g);
+      PrintUART1("got value :p %f i %f\r\n", current_pgain_g, current_igain_g);
+      break;
+    }
+    case 'h': {
+      // Get current gain
+      PrintUART1("p %f i %f\r\n", current_pgain_g, current_igain_g);
+      break;
+    }
+    case 'k':{
+      // Test current control
+
+       NU32DIP_GREEN = 1;
+
+      set_state(s_ITEST);
+      // Wait until its done
+      while (get_state() != s_IDLE) {}
+
+      PrintUART1("%d\r\n" ,ITEST_PLOTPTS ) ;
+      for (int i = 0; i < ITEST_PLOTPTS; i++) {
+      // send plot data to MATLAB
+      // when first number sent = 1, MATLAB knows we’re done
+      sprintf(message, "%d %d\r\n", IMSRarray[i], IREFarray[i]);
+      NU32DIP_WriteUART1(message);
+      }
+
+      break;
+    }
+
+ 
     case 'p': {
       set_state(s_IDLE);
       break;

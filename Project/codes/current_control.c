@@ -3,8 +3,19 @@
 #include "utilities.h"
 #include "current_control.h"
 #include <stdbool.h>
+#include "ina219.h"
 #include <math.h>
-int pwm_value_g =0; 
+volatile int pwm_value_g =0; 
+volatile float current_pgain_g=0.1;
+volatile float current_igain_g=0.001;
+
+volatile int IMSRarray[ITEST_PLOTPTS];
+volatile int IREFarray[ITEST_PLOTPTS];
+
+
+static const float kRefMaBase = 200;
+
+static volatile float current_error_integral  =0 ;  
 
 void Timer3_OC1_Setup_20khz() {
 // OC1 with RPB7, Pin16 as output PWM, with Timer2. 
@@ -44,24 +55,76 @@ void Timer2Setup5khz() {
   T2CONbits.ON = 1; // timer on
 }
 
+float PidUpdate(float ref_current , float current_val){
+  
+  float error = ref_current - current_val;
+
+  current_error_integral += error;
+
+  float command = current_pgain_g * error + current_igain_g * current_error_integral;
+  return command;
+}
+
 void SetMotor_Positive(bool dir) { MOTOR_DIR = dir; }
 
-void __ISR(_TIMER_2_VECTOR, IPL5SOFT) Controller(void) { // _TIMER_2_VECTOR = 8
-  switch (get_state()) {
-  case s_IDLE: {
-    PWM_REG = 0;
-    break;
-  }
-  case s_PWM: {
-    PWM_REG = 2400 * abs(pwm_value_g) / 100 - 1;
-    if (pwm_value_g < 0) {
+void SetMotorCommand(int percent){
+      PWM_REG = 2400 * abs(percent) / 100 - 1;
+    if (percent < 0) {
       SetMotor_Positive(false);
     } else {
       SetMotor_Positive(true);
     }
+
+}
+
+void __ISR(_TIMER_2_VECTOR, IPL5SOFT) Controller(void) { // _TIMER_2_VECTOR = 8
+static int itest_loop_count =0;
+static float ref_ma = kRefMaBase;
+  switch (get_state()) {
+  case s_IDLE: {
+    PWM_REG = 0;
+    itest_loop_count=0;
+    current_error_integral=0;
     break;
   }
+  case s_PWM: {
+  SetMotorCommand( pwm_value_g);
+
+    break;
   }
+  case s_ITEST: {
+    // ITEST end condition
+    NU32DIP_YELLOW ^=1;
+    if (itest_loop_count < 25) {
+      ref_ma = kRefMaBase;
+    } else if (itest_loop_count < 50) {
+      ref_ma = -kRefMaBase;
+    } else if (itest_loop_count < 75) {
+      ref_ma = kRefMaBase;
+    } else {
+      ref_ma = -kRefMaBase;
+    }
+
+    float current_val = INA219_read_current();
+    float command = PidUpdate(ref_ma, current_val);
+    SetMotorCommand((int)command);
+
+    IMSRarray[itest_loop_count] = current_val;
+    IREFarray[itest_loop_count] = ref_ma;
+
+    if (itest_loop_count == 99) {
+      NU32DIP_YELLOW = 0;
+      NU32DIP_GREEN = 0;
+
+      set_state(s_IDLE);
+      itest_loop_count = 0;
+    } else {
+      itest_loop_count++;
+    }
+    break;
+    }
+  }
+
   IFS0bits.T2IF = 0;
 }
 
