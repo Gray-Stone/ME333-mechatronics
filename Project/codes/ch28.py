@@ -51,10 +51,24 @@ while not has_quit:
         # Get mode 
         curr_state = int(ser.read_until(b'\n'));  # get the incremented number back
         print(f"current state: {state_map.get(curr_state,'Invalid_state')} ")
-
+    
     elif (selection == 'e'):
         n_str = ser.read_until(b'\n');  # get the incremented number back
         print(n_str)
+
+    elif (selection == 'f'):
+        value = int(input("\nEnter PWM value for mode f (from -100 to 100)"))
+        value = max( min(value, 100), -100)
+        print(f"Sending {value}")
+        ser.write(f"{value}\r\n".encode() )
+        ser.timeout = 2
+        feedback = ser.read_until(b'\n')
+        print(f"Feed back with {feedback}")
+    elif (selection=='p'):
+        ser.write("r\n".encode())
+        curr_state = int(ser.read_until(b'\n'));  # get the incremented number back
+        print(f"current state: {state_map.get(curr_state,'Invalid_state')} ")
+
     elif (selection == 'q'):
         
         print('Exiting client')

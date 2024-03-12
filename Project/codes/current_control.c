@@ -1,14 +1,10 @@
 #include <xc.h>
 #include "nu32dip.h"
-
+#include "utilities.h"
 #include "current_control.h"
-
-
-void HBridgeSetup(){
-      TRISBCLR = 0b11 << 6 ; // Set PB 6 and 7 to output
-    Timer3_OC1_Setup_20khz();
-}
-
+#include <stdbool.h>
+#include <math.h>
+int pwm_value_g =0; 
 
 void Timer3_OC1_Setup_20khz() {
 // OC1 with RPB7, Pin16 as output PWM, with Timer2. 
@@ -48,11 +44,29 @@ void Timer2Setup5khz() {
   T2CONbits.ON = 1; // timer on
 }
 
+void SetMotor_Positive(bool dir) { MOTOR_DIR = dir; }
+
 void __ISR(_TIMER_2_VECTOR, IPL5SOFT) Controller(void) { // _TIMER_2_VECTOR = 8
-    static int dir = 0 ;
-    dir ^= 1;
-    MOTOR_DIR ^= 1 ; 
-    NU32DIP_YELLOW ^= 1;
-    OC1RS = 600 + 1200 * dir; 
+  switch (get_state()) {
+  case s_IDLE: {
+    PWM_REG = 0;
+    break;
+  }
+  case s_PWM: {
+    PWM_REG = 2400 * abs(pwm_value_g) / 100 - 1;
+    if (pwm_value_g < 0) {
+      SetMotor_Positive(false);
+    } else {
+      SetMotor_Positive(true);
+    }
+    break;
+  }
+  }
   IFS0bits.T2IF = 0;
 }
+
+void HBridgeSetup(){
+      TRISBCLR = 0b11 << 6 ; // Set PB 6 and 7 to output
+    Timer3_OC1_Setup_20khz();
+}
+

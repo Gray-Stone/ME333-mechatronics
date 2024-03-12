@@ -6,9 +6,12 @@
 #include "ina219.h"
 #include "utilities.h"
 #include <stdarg.h>
+#include "current_control.h"
+
 
 #define MAX_MESSAGE_LENGTH 100
 char message[MAX_MESSAGE_LENGTH];
+char message_in[MAX_MESSAGE_LENGTH];
 
 void PrintUART1(const char *format, ...) {
   // https://stackoverflow.com/questions/42131753/wrapper-for-printf
@@ -49,11 +52,14 @@ int main() {
 
   set_state(s_IDLE);
 
-  PrintUART1("started");
+  PrintUART1("Main started");
 
   while (1) {
 
     NU32DIP_ReadUART1(message, sizeof(message));
+     NU32DIP_GREEN = 0;
+      NU32DIP_YELLOW = 0;
+
     char input = message[0];
     switch (input) {
       // A is not an option for NU32DIP
@@ -61,6 +67,7 @@ int main() {
       // Read current sensor mA
       double current = INA219_read_current();
       PrintUART1("%f\r\n", current);
+      break;
     }
     case 'c': {
       PrintUART1("%d\r\n", ReadEncoder());
@@ -79,8 +86,19 @@ int main() {
       PrintUART1("%d\r\n", get_state());
       break;
     }
-    case 'p': {
+    case 'f':{
+      // PrintUART1("Getting value");
+      NU32DIP_ReadUART1(message_in, sizeof(message_in));
+      int temp_pwm;
+      sscanf(message_in ,"%d", &temp_pwm);
+      PrintUART1("got value : %d \r\n",temp_pwm);
+      pwm_value_g =temp_pwm;
       set_state(s_PWM);
+      break;
+    }
+    case 'p': {
+      set_state(s_IDLE);
+      break;
     }
 
     case 'q': {
