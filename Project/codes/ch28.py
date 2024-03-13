@@ -7,7 +7,10 @@
 # sudo apt-get install python3-matplotlib
 
 import matplotlib.pyplot as plt 
+from genref import genRef
 from statistics import mean 
+import time
+
 def read_plot_matrix():
     n_str = ser.read_until(b'\n');  # get the number of data points to receive
     n_int = int(n_str) # turn it into an int
@@ -27,6 +30,35 @@ def read_plot_matrix():
         meanlist.append(abs(i-j))
     score = mean(meanlist)
     t = range(len(ref)) # index array
+    plt.plot(t,ref,'r*-',t,data,'b*-')
+    plt.title('Score = ' + str(score))
+    plt.ylabel('value')
+    plt.xlabel('index')
+    plt.show()
+
+def read_plot_matrix_pose(ref_traj):
+    n_str = ser.read_until(b'\n');  # get the number of data points to receive
+    n_int = int(n_str) # turn it into an int
+    print('Data lengeth = ' + str(n_int))
+    # ref = []
+    data = []
+    data_received = 0
+    while data_received < n_int:
+        dat_str = ser.read_until(b'\n');  # get the data as a string, ints seperated by spaces
+        anlge = float(dat_str)
+        # dat_int = list(map(int,dat_str.split())) # now the data is a list
+        # ref.append(dat_int[0])
+        data.append(anlge)
+        data_received = data_received + 1
+    meanzip = zip(ref_traj,data)
+    meanlist = []
+    for i,j in meanzip:
+        meanlist.append(abs(i-j))
+    score = mean(meanlist)
+    t = []
+
+    for a in range(len(ref)):
+        t.append(a/200)
     plt.plot(t,ref,'r*-',t,data,'b*-')
     plt.title('Score = ' + str(score))
     plt.ylabel('value')
@@ -66,6 +98,7 @@ while not has_quit:
 
     if (selection == 'c'):
         n_str = ser.read_until(b'\n');  # get the incremented number back
+        print(f"Got raw [{n_str}]")
         count = int(n_str) # turn it into an int
         print(f"The motor is at {count} count")
     elif (selection == 'b'):
@@ -130,6 +163,61 @@ while not has_quit:
         feedback = ser.read_until(b'\n')
         print(f"Feed back with:\n{feedback}")
 
+    elif (selection == 'm'):
+        # ref = genRef('step',[0, 0, 0.5,90, 2, 45, 3, 45] )
+        ref = genRef('step',[0, 0, 0.5,90, 1.2, 45, 2, 45] )
+        # ref = genRef('step',[0,10,0.005,120 , 0.02 , 45])
+        print(len(ref))
+        t = []
+
+        for a in range(len(ref)):
+            t.append(a/200)
+
+        plt.plot(t,ref,'r*-')
+        plt.ylabel('value')
+        plt.xlabel('index')
+        plt.show()
+        ser.write(f" {len(ref)} \n".encode())
+        count =0 
+        time.sleep(0.5)
+        for deg in ref:
+            time.sleep(0.001)
+            encoding = f"{deg}\n".encode()
+            print(f"{count}, Sending: {encoding}")
+            count+=1
+            ser.write(encoding)
+        feedback = ser.read_until(b'\n')            
+        print(f"Feed back with:\n{feedback}")
+
+    elif (selection == 'n'):
+        ref = genRef('cubic',[0, 0, 0.5,90, 1.2, 45, 2, 45])
+        print(len(ref))
+        t = []
+
+        for a in range(len(ref)):
+            t.append(a/200)
+
+        plt.plot(t,ref,'r*-')
+        plt.ylabel('value')
+        plt.xlabel('index')
+        plt.show()
+        ser.write(f" {len(ref)} \n".encode())
+        count =0 
+        time.sleep(0.5)
+        for deg in ref:
+            time.sleep(0.001)
+            encoding = f"{deg}\n".encode()
+            print(f"{count}, Sending: {encoding}")
+            count+=1
+            ser.write(encoding)
+        feedback = ser.read_until(b'\n')            
+        print(f"Feed back with:\n{feedback}")
+    
+    elif (selection == 'o'):
+        read_plot_matrix_pose(ref)
+
+
+
     elif (selection=='p'):
         ser.write("r\n".encode())
         curr_state = int(ser.read_until(b'\n'));  # get the incremented number back
@@ -141,5 +229,11 @@ while not has_quit:
         has_quit = True; # exit client
         # be sure to close the port
         ser.close()
+    elif (selection == "z"):
+        print("Whatever from PIC")
+        ser.timeout = 0.5
+        feedback = ser.read_until(b'\n')            
+        print(f"[{feedback}]")
+
     else:
         print('Invalid Selection ' + selection_endline)

@@ -124,6 +124,7 @@ static float ref_ma = kRefMaBase;
     }
     break;
   }
+  case s_TRACK:
   case s_HOLD: {
     // Control is from the position side,
     // Just follow the current command

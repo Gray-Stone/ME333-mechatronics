@@ -58,11 +58,13 @@ int main() {
 
   while (1) {
 
-    NU32DIP_ReadUART1(message, sizeof(message));
+    NU32DIP_ReadUART1(message_in, sizeof(message_in));
     NU32DIP_GREEN = 0;
     NU32DIP_YELLOW = 1;
 
-    char input = message[0];
+    char input = message_in[0];
+    // char input;
+    // sscanf(message_in, "%c" , input);
     switch (input) {
       // A is not an option for NU32DIP
     case 'b': {
@@ -117,14 +119,15 @@ int main() {
 
       set_state(s_ITEST);
       // Wait until its done
-      while (get_state() != s_IDLE) {}
+      while (get_state() != s_IDLE) {
+      }
 
-      PrintUART1("%d\r\n" ,ITEST_PLOTPTS ) ;
+      PrintUART1("%d\r\n", ITEST_PLOTPTS);
       for (int i = 0; i < ITEST_PLOTPTS; i++) {
-      // send plot data to MATLAB
-      // when first number sent = 1, MATLAB knows we’re done
-      sprintf(message, "%d %d\r\n", IMSRarray[i], IREFarray[i]);
-      NU32DIP_WriteUART1(message);
+        // send plot data to MATLAB
+        // when first number sent = 1, MATLAB knows we’re done
+        sprintf(message, "%d %d\r\n", IMSRarray[i], IREFarray[i]);
+        NU32DIP_WriteUART1(message);
       }
 
       break;
@@ -154,7 +157,57 @@ int main() {
       set_state(s_HOLD);
       break;
     }
- 
+    case 'n':
+    case 'm':{
+      // Read the trajectory
+      NU32DIP_ReadUART1(message_in, sizeof(message_in));
+      sscanf(message_in, "%d", &ref_traj_size);
+      NU32DIP_GREEN = 1;
+      NU32DIP_YELLOW = 0;
+      int i =0;
+      float ref_ang;
+      for ( i=0 ; i<ref_traj_size ; i++){
+        NU32DIP_ReadUART1(message_in, sizeof(message_in));
+        
+        sscanf(message_in, " %f", &ref_ang);
+        int enc_val = Deg2Encoder(ref_ang);
+        ref_encoder_traj[i] = enc_val;
+      }
+
+      // PrintUART1("last msg in [%s] " , message_in);
+      // PrintUART1("i is %d  " , i);
+      for ( i=0 ; i<ref_traj_size ; i++){
+        PrintUART1("%d:", ref_encoder_traj[i]);
+      }
+      PrintUART1("Traj got %d numbers, Traj start with encoder %d, end %d\r\n", ref_traj_size,
+                 ref_encoder_traj[0], ref_encoder_traj[ref_traj_size - 1]);
+      NU32DIP_GREEN = 0;
+      NU32DIP_YELLOW = 1;
+      break;
+    }
+
+    case 'o': {
+      NU32DIP_GREEN = 1;
+      NU32DIP_YELLOW = 0;
+      set_state(s_TRACK);
+      while (get_state() == s_TRACK) {
+        // wait for it
+      }
+
+      PrintUART1("%d\r\n", ref_traj_size);
+      for (int i = 0; i < ref_traj_size; i++) {
+        // send plot data to MATLAB
+        // when first number sent = 1, MATLAB knows we’re done
+        double measure_ang = Encoder2Deg(measure_enc_traj[i]);
+        sprintf(message, "%f \r\n", measure_ang);
+        NU32DIP_WriteUART1(message);
+      }
+
+      NU32DIP_GREEN = 0;
+      NU32DIP_YELLOW = 1;
+      break;
+    }
+
     case 'p': {
       set_state(s_IDLE);
       break;
@@ -171,6 +224,7 @@ int main() {
     default: {
       NU32DIP_GREEN = 0;
       NU32DIP_YELLOW = 0;
+      PrintUART1("msin [%s]" , message_in);
       break;
     }
     }

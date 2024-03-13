@@ -1,6 +1,6 @@
 # generate a step or cubic response trajectory based on a list of via points
 
-def genRef(method):
+def genRef(method , maybe_reflist = None):
     if method == 'step':
         print('Step!')
     elif method == 'cubic':
@@ -9,10 +9,13 @@ def genRef(method):
         print('Not a valid method')
         return [-1]
 
-    reflist = [0,0,1,90,2,45,3,45] # defualt refs
-    
-    refs_str = input('Enter times and angles, starting at t=0 (ex: 0 0 1 90 2 90 3 0): ')
-    reflist = list(map(float,refs_str.split()))
+    reflist = []
+    if maybe_reflist is None:
+        refs_str = input('Enter times and angles, starting at t=0 (ex: 0 0 1 90 2 90 3 0): ')
+        reflist = list(map(float, refs_str.split()))
+    else:
+        reflist = maybe_reflist
+        # reflist = [0, 0, 1, 90, 2, 45, 3, 45]  # defualt refs
 
     # check to see if the reflist is even and the odd values (times) are increasing
     if (len(reflist)%2!=0 or len(reflist) < 2 or reflist[0]!=0):
@@ -45,7 +48,7 @@ def genRef(method):
                 ref[samp] = angle_list[i-1]
             last_sample = sample_list[i]
         ref[samp] = angle_list[-1]
-    
+
     if method == 'cubic':
         ref = [] # store the output trajectory
         time_list = [] # time

@@ -12,7 +12,9 @@ volatile float position_i_g = 0.0;
 volatile float position_d_g = 3;
 volatile int target_encoder_g;
 
-
+volatile int ref_traj_size = 0;
+int ref_encoder_traj[TrajMax] ;
+int measure_enc_traj[TrajMax] ;
 
 static volatile int pos_error_integral = 0;
 static volatile int prev_pos_error = 0;
@@ -59,12 +61,14 @@ float PosPID(int target_encoder, int current_encoder) {
 void __ISR(_TIMER_4_VECTOR, IPL2SOFT) PosController(void) {
   // NU32DIP_GREEN ^=1;
   // NU32DIP_YELLOW ^=1;
+  static int track_index = 0;
   switch (get_state()) {
   case s_IDLE: {
     // clear current command to zero in idle state
     pos_ctl_current_ma_g = 0;
     pos_error_integral = 0;
     prev_pos_error = 0;
+    track_index =0;
     break;
   }
   case s_HOLD: {
@@ -78,11 +82,27 @@ void __ISR(_TIMER_4_VECTOR, IPL2SOFT) PosController(void) {
         NU32DIP_YELLOW =1;
     }
     pos_ctl_current_ma_g = new_target_current;
-    
-
     break;
   }
-  }
+    case s_TRACK: {
+    
+    int current_enc = ReadEncoder();
+
+    float new_target_current = PosPID(ref_encoder_traj[track_index], current_enc);
+    measure_enc_traj[track_index] = current_enc;
+    if (new_target_current >0 ){
+        NU32DIP_YELLOW =0;
+    } else{
+        NU32DIP_YELLOW =1;
+    }
+    pos_ctl_current_ma_g = new_target_current;
+      if (track_index > ref_traj_size) {
+        set_state(s_HOLD);
+        track_index = 0;
+      }
+      track_index++;
+    }
+    }
 
   IFS0bits.T4IF = 0; // clear interrupt flag
 }
