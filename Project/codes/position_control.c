@@ -7,9 +7,9 @@
 #include <stdbool.h>
 #include <xc.h>
 
-volatile float position_p_g = 10;
+volatile float position_p_g = 70.0;
 volatile float position_i_g = 0.0;
-volatile float position_d_g = 3;
+volatile float position_d_g = 60;
 volatile int target_encoder_g;
 
 volatile int ref_traj_size = 0;
@@ -90,17 +90,17 @@ void __ISR(_TIMER_4_VECTOR, IPL2SOFT) PosController(void) {
 
     float new_target_current = PosPID(ref_encoder_traj[track_index], current_enc);
     measure_enc_traj[track_index] = current_enc;
-    if (new_target_current >0 ){
-        NU32DIP_YELLOW =0;
-    } else{
-        NU32DIP_YELLOW =1;
+    if (new_target_current > 0) {
+      NU32DIP_YELLOW = 0;
+    } else {
+      NU32DIP_YELLOW = 1;
     }
     pos_ctl_current_ma_g = new_target_current;
-      if (track_index > ref_traj_size) {
-        set_state(s_HOLD);
-        track_index = 0;
-      }
-      track_index++;
+    if (track_index > ref_traj_size) {
+      set_state(s_HOLD);
+      track_index = 0;
+    }
+    track_index++;
     }
     }
 

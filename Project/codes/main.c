@@ -224,7 +224,7 @@ int main() {
     default: {
       NU32DIP_GREEN = 0;
       NU32DIP_YELLOW = 0;
-      PrintUART1("msin [%s]" , message_in);
+      PrintUART1("msin [%s]\n" , message_in);
       break;
     }
     }

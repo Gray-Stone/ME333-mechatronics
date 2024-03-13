@@ -38,6 +38,7 @@ def read_plot_matrix():
 
 def read_plot_matrix_pose(ref_traj):
     n_str = ser.read_until(b'\n');  # get the number of data points to receive
+    print(f"n of index {n_str}")
     n_int = int(n_str) # turn it into an int
     print('Data lengeth = ' + str(n_int))
     # ref = []
@@ -119,7 +120,7 @@ while not has_quit:
         value = int(input("\nEnter PWM value for mode f (from -100 to 100)"))
         value = max( min(value, 100), -100)
         print(f"Sending {value}")
-        ser.write(f"{value}\r\n".encode() )
+        ser.write(f"{value}\n".encode() )
         feedback = ser.read_until(b'\n')
         print(f"Feed back with {feedback}")
 
@@ -134,7 +135,7 @@ while not has_quit:
         pvalue = float(input("\nEnter P gain : "))
         ivalue = float(input("\nEnter I gain : "))
         print(f"Sending P {pvalue} , I {ivalue}")
-        ser.write(f"{pvalue} {ivalue}\r\n".encode())
+        ser.write(f"{pvalue} {ivalue}\n".encode())
         feedback = ser.read_until(b'\n')
         print(f"Feed back with {feedback}")
 
@@ -147,7 +148,7 @@ while not has_quit:
 
     elif (selection == 'i'):
         pid_string = input("\nEnter pos control PIDs : ") # now the data is a list
-        pid_string += "\r\n"
+        pid_string += "\n"
         pid_string = pid_string.encode()
         print(f"Sending {pid_string}")
         ser.write(pid_string)
@@ -159,13 +160,13 @@ while not has_quit:
         print(f"gain value returned: {n_str}")
     elif (selection == 'l'):
         target_ang = float(input("\nEnter target angle : "))
-        ser.write(f"{target_ang}\r\n".encode())
+        ser.write(f"{target_ang}\n".encode())
         feedback = ser.read_until(b'\n')
         print(f"Feed back with:\n{feedback}")
 
     elif (selection == 'm'):
         # ref = genRef('step',[0, 0, 0.5,90, 2, 45, 3, 45] )
-        ref = genRef('step',[0, 0, 0.5,90, 1.2, 45, 2, 45] )
+        ref = genRef('step',[0, 0, 0.5,90, 2.5, 45, 3, 45] )
         # ref = genRef('step',[0,10,0.005,120 , 0.02 , 45])
         print(len(ref))
         t = []
@@ -210,7 +211,8 @@ while not has_quit:
             print(f"{count}, Sending: {encoding}")
             count+=1
             ser.write(encoding)
-        feedback = ser.read_until(b'\n')            
+            ser.timeout = 10
+        feedback = ser.read_until(b'\n')        
         print(f"Feed back with:\n{feedback}")
     
     elif (selection == 'o'):
