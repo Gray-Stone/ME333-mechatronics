@@ -12,4 +12,11 @@ typedef enum {
 PicStats get_state();
 void set_state(PicStats new_state);
 
+
+int ReadEncoder();
+
+int Deg2Encoder (float ang);
+
+float Encoder2Deg(int count);
+
 #endif

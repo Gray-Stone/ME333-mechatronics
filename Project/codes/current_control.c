@@ -6,15 +6,16 @@
 #include "ina219.h"
 #include <math.h>
 volatile int pwm_value_g =0; 
+volatile float pos_ctl_current_ma_g = 0;
+
 volatile float current_pgain_g=0.1;
-volatile float current_igain_g=0.001;
+volatile float current_igain_g=0.01;
 
 volatile int IMSRarray[ITEST_PLOTPTS];
 volatile int IREFarray[ITEST_PLOTPTS];
 
 
 static const float kRefMaBase = 200;
-
 static volatile float current_error_integral  =0 ;  
 
 void Timer3_OC1_Setup_20khz() {
@@ -122,7 +123,15 @@ static float ref_ma = kRefMaBase;
       itest_loop_count++;
     }
     break;
-    }
+  }
+  case s_HOLD: {
+    // Control is from the position side,
+    // Just follow the current command
+    float current_val = INA219_read_current();
+    float command = PidUpdate(pos_ctl_current_ma_g, current_val);
+    SetMotorCommand((int)command);
+    break;
+  }
   }
 
   IFS0bits.T2IF = 0;

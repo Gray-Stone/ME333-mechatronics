@@ -7,7 +7,7 @@
 #include "utilities.h"
 #include <stdarg.h>
 #include "current_control.h"
-
+#include "position_control.h"
 
 #define MAX_MESSAGE_LENGTH 100
 char message[MAX_MESSAGE_LENGTH];
@@ -24,9 +24,6 @@ void PrintUART1(const char *format, ...) {
   NU32DIP_WriteUART1(message);
 }
 
-int ReadEncoder();
-
-double Encoder2Deg(int count);
 
 int main() {
 
@@ -39,11 +36,16 @@ int main() {
   set_encoder_flag(0);
   INA219_Startup();
 
+  // Clear encoder on boot
+  WriteUART2("b");
+
+
   // Disable interrupt during setup
   __builtin_disable_interrupts();
   // Peripheral setup
   HBridgeSetup();
   Timer2Setup5khz();
+  PosCtlSetup();
 
   __builtin_enable_interrupts();
 
@@ -52,13 +54,13 @@ int main() {
 
   set_state(s_IDLE);
 
-  PrintUART1("Main started");
+  PrintUART1("Main started\r\n");
 
   while (1) {
 
     NU32DIP_ReadUART1(message, sizeof(message));
-     NU32DIP_GREEN = 0;
-      NU32DIP_YELLOW = 1;
+    NU32DIP_GREEN = 0;
+    NU32DIP_YELLOW = 1;
 
     char input = message[0];
     switch (input) {
@@ -128,6 +130,30 @@ int main() {
       break;
     }
 
+    case 'i':{
+
+      NU32DIP_ReadUART1(message_in, sizeof(message_in));
+      sscanf(message_in, "%f %f %f", &position_p_g, &position_i_g, &position_d_g);
+      PrintUART1("got value :p %f i %f d %f\r\n", position_p_g, position_i_g, position_d_g);
+      break;
+    }
+
+    case 'j':{
+
+      PrintUART1("pos ctl :p %f i %f d %f\r\n", position_p_g, position_i_g, position_d_g);
+      break;
+    }
+
+    case 'l':{
+      // Position holding 
+      NU32DIP_ReadUART1(message_in, sizeof(message_in));
+      float temp_angle ; 
+      sscanf(message_in, "%f", &temp_angle);
+      target_encoder_g = Deg2Encoder(temp_angle);
+      PrintUART1("Set target ang %f , target encoder %d\r\n", temp_angle , target_encoder_g);
+      set_state(s_HOLD);
+      break;
+    }
  
     case 'p': {
       set_state(s_IDLE);
@@ -152,20 +178,3 @@ int main() {
   return 0;
 }
 
-int ReadEncoder() {
-  WriteUART2("a");
-  while (!get_encoder_flag()) {
-    // Busy waiting.
-  }
-  set_encoder_flag(0);
-
-  return get_encoder_count();
-}
-
-double Encoder2Deg(int count) {
-  // Encoder have 96 line.
-  // Pico gives 384 count per rotation
-  // (96*4) / (360) deg
-
-  return ((double)count) / 384.0 * 360.0;
-}

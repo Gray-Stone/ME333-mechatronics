@@ -6,6 +6,7 @@
 #define PWM_REG OC1RS
 
 extern volatile int pwm_value_g;
+extern volatile float pos_ctl_current_ma_g;
 
 #define ITEST_PLOTPTS 100    // number of data points to plot
 extern volatile float current_pgain_g;

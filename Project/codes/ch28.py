@@ -76,6 +76,21 @@ while not has_quit:
         n_str = ser.read_until(b'\n');  # get the incremented number back
         count = float(n_str) # turn it into an int
         print(f"The motor is at {count} degree")
+
+
+    elif (selection == 'e'):
+        n_str = ser.read_until(b'\n')
+        print(n_str)
+
+    elif (selection == 'f'):
+        value = int(input("\nEnter PWM value for mode f (from -100 to 100)"))
+        value = max( min(value, 100), -100)
+        print(f"Sending {value}")
+        ser.write(f"{value}\r\n".encode() )
+        feedback = ser.read_until(b'\n')
+        print(f"Feed back with {feedback}")
+
+
     elif (selection=="r"):
         # Get mode
         curr_state = int(ser.read_until(b'\n'));  # get the incremented number back
@@ -97,20 +112,24 @@ while not has_quit:
     elif (selection == 'k'):
         read_plot_matrix()
 
-
-
-
-    elif (selection == 'e'):
-        n_str = ser.read_until(b'\n')
-        print(n_str)
-
-    elif (selection == 'f'):
-        value = int(input("\nEnter PWM value for mode f (from -100 to 100)"))
-        value = max( min(value, 100), -100)
-        print(f"Sending {value}")
-        ser.write(f"{value}\r\n".encode() )
+    elif (selection == 'i'):
+        pid_string = input("\nEnter pos control PIDs : ") # now the data is a list
+        pid_string += "\r\n"
+        pid_string = pid_string.encode()
+        print(f"Sending {pid_string}")
+        ser.write(pid_string)
         feedback = ser.read_until(b'\n')
         print(f"Feed back with {feedback}")
+    elif (selection == 'j'):
+        n_str = ser.read_until(b'\n')
+        # get the incremented number back
+        print(f"gain value returned: {n_str}")
+    elif (selection == 'l'):
+        target_ang = float(input("\nEnter target angle : "))
+        ser.write(f"{target_ang}\r\n".encode())
+        feedback = ser.read_until(b'\n')
+        print(f"Feed back with:\n{feedback}")
+
     elif (selection=='p'):
         ser.write("r\n".encode())
         curr_state = int(ser.read_until(b'\n'));  # get the incremented number back
